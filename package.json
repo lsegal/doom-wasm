@@ -1,0 +1,15 @@
+{
+  "name": "doom-wasm",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@10.34.4",
+  "description": "An original Doom-style raycaster written in C and compiled to WebAssembly",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "serve dist",
+    "check": "node scripts/check-site.mjs"
+  },
+  "devDependencies": {
+    "serve": "14.2.5"
+  }
+}

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.serve.log
+.serve.err.log
+.doom-bundle.tmp
+serve.log
+serve.err.log
