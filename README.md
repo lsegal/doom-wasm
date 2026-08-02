@@ -1,27 +1,34 @@
-# WASM DOOM
+# WASM Doom — Godot Edition
 
-An original Doom-style raycast shooter implemented from scratch in C and
-compiled directly to WebAssembly. It does not use Doom, js-dos, DOSBox, an
-existing source port, or downloaded game assets.
+An original Doom-style first-person shooter built as a native Godot 4 project.
+It uses Godot's 3D renderer, physics, CharacterBody3D movement, raycast combat,
+billboard enemies, textured level geometry, and CanvasLayer HUD.
 
-The C engine owns the framebuffer, world map, raycasting renderer, textured
-walls, animated enemies, collision, combat, health, and game state. JavaScript only
-loads the WebAssembly module, copies its framebuffer to a canvas, and forwards
-browser input. Original raster artwork is stored in `site/assets/hell-atlas.png`.
+The artwork in `assets/` is original. This project does not contain Doom source
+code, WADs, js-dos, DOSBox, or commercial game assets.
 
-## Build and run
+## Run locally
 
-Requires Clang with the WebAssembly target and `wasm-ld`.
+Open `project.godot` in Godot 4.7.1 and press **F6**.
+
+Controls:
+
+- `WASD` or arrow keys: move and turn
+- Mouse: look
+- Left click or `Space`: fire
+- `Esc`: release the mouse
+- `R`: restart after victory or death
+
+## Export for GitHub Pages
+
+The workflow downloads the official Godot 4.7.1 editor and matching export
+templates, exports the `Web` preset to `dist/`, and deploys it with GitHub Pages.
+
+To export locally, install the Godot 4.7.1 export templates, then run:
 
 ```sh
-pnpm install
-pnpm build
-pnpm check
-pnpm start
+godot --headless --path . --export-release Web build/web/index.html
 ```
 
-## GitHub Pages
-
-Push `main`. The Pages workflow installs Clang, compiles `src/doom.c` into
-`dist/doom.wasm`, verifies the module, and deploys the generated static site.
-Set **Settings → Pages → Source** to **GitHub Actions** once for a new repo.
+`scripts/split_assets.py` reproducibly derives the Godot-ready texture and
+alpha-sprite files from the authored atlas.

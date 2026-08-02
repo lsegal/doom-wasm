@@ -1,4 +1,4 @@
-name: Deploy Doom to GitHub Pages
+name: Export Godot and deploy to GitHub Pages
 
 on:
   push:
@@ -15,6 +15,9 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+env:
+  GODOT_VERSION: 4.7.1
+
 jobs:
   deploy:
     environment:
@@ -27,36 +30,41 @@ jobs:
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.34.4
+      - name: Download Godot and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          release="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl --fail --location --retry 3 \
+            --output godot.zip \
+            "${release}/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          curl --fail --location --retry 3 \
+            --output templates.tpz \
+            "${release}/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          mkdir -p .godot-bin "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          unzip -q godot.zip -d .godot-bin
+          unzip -q templates.tpz -d .godot-templates
+          mv .godot-templates/templates/* "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable/"
+          chmod +x .godot-bin/Godot_v${GODOT_VERSION}-stable_linux.x86_64
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+      - name: Import Godot project
+        run: .godot-bin/Godot_v${GODOT_VERSION}-stable_linux.x86_64 --headless --path . --import
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install WebAssembly compiler
-        run: sudo apt-get update && sudo apt-get install --yes clang lld
-
-      - name: Compile original C engine to WebAssembly
-        run: pnpm build
-
-      - name: Check site
-        run: pnpm check
+      - name: Export web build
+        run: |
+          mkdir -p build/web
+          .godot-bin/Godot_v${GODOT_VERSION}-stable_linux.x86_64 \
+            --headless --path . --export-release Web build/web/index.html
+          touch build/web/.nojekyll
+          test -s build/web/index.html
+          test -s build/web/index.wasm
+          test -s build/web/index.pck
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: dist
+          path: build/web
 
       - name: Deploy to GitHub Pages
         id: deployment
